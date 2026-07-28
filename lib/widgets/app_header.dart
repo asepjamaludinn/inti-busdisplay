@@ -36,7 +36,7 @@ class AppHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Image.asset(
-                'assets/images/inti_logo.png',
+                'assets/images/logo.png',
                 height: 40,
                 errorBuilder: (context, error, stackTrace) =>
                     const Icon(Icons.domain, color: Colors.white, size: 40),
