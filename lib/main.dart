@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'controllers/display_controller.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const SmartBusDisplayApp());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => DisplayController())],
+      child: const SmartBusDisplayApp(),
+    ),
+  );
 }
 
 class SmartBusDisplayApp extends StatelessWidget {
@@ -40,7 +47,7 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, 
+      extendBody: true,
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         margin: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
