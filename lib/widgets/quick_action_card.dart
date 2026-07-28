@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controllers/display_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import 'primary_button.dart';
@@ -26,7 +28,9 @@ class QuickActionCard extends StatelessWidget {
           PrimaryButton(
             label: 'Send To Display',
             icon: Icons.send_rounded,
-            onTap: () {},
+            onTap: () {
+              context.read<DisplayController>().sendPayloadToDevice(context);
+            },
           ),
           const SizedBox(height: 12),
           Row(

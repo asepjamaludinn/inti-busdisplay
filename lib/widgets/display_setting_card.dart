@@ -1,23 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controllers/display_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import 'modern_slider.dart';
 
-class DisplaySettingCard extends StatefulWidget {
+class DisplaySettingCard extends StatelessWidget {
   const DisplaySettingCard({Key? key}) : super(key: key);
 
   @override
-  State<DisplaySettingCard> createState() => _DisplaySettingCardState();
-}
-
-class _DisplaySettingCardState extends State<DisplaySettingCard> {
-  String _animMode = 'Scroll Left';
-  double _speed = 50;
-  double _brightness = 80;
-  double _fontSize = 16;
-
-  @override
   Widget build(BuildContext context) {
+    final controller = context.watch<DisplayController>();
+
     return Container(
       decoration: AppTheme.cardDecoration,
       padding: const EdgeInsets.all(20),
@@ -49,7 +43,7 @@ class _DisplaySettingCardState extends State<DisplaySettingCard> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _animMode,
+                value: controller.animMode,
                 isExpanded: true,
                 items:
                     [
@@ -63,27 +57,27 @@ class _DisplaySettingCardState extends State<DisplaySettingCard> {
                         ]
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                onChanged: (val) => setState(() => _animMode = val!),
+                onChanged: (val) => controller.setAnimMode(val!),
               ),
             ),
           ),
           const SizedBox(height: 24),
           ModernSlider(
             label: 'Scroll Speed',
-            value: _speed,
-            onChanged: (val) => setState(() => _speed = val),
+            value: controller.speed,
+            onChanged: (val) => controller.setSpeed(val),
           ),
           const SizedBox(height: 12),
           ModernSlider(
             label: 'Brightness',
-            value: _brightness,
-            onChanged: (val) => setState(() => _brightness = val),
+            value: controller.brightness,
+            onChanged: (val) => controller.setBrightness(val),
           ),
           const SizedBox(height: 12),
           ModernSlider(
             label: 'Font Size',
-            value: _fontSize,
-            onChanged: (val) => setState(() => _fontSize = val),
+            value: controller.fontSize,
+            onChanged: (val) => controller.setFontSize(val),
           ),
         ],
       ),
