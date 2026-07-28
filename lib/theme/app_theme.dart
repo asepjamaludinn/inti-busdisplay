@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
@@ -10,11 +11,10 @@ class AppTheme {
         seedColor: AppColors.primary,
         primary: AppColors.primary,
         secondary: AppColors.secondary,
-        background: AppColors.background,
         surface: AppColors.card,
         error: AppColors.danger,
       ),
-      fontFamily: 'Roboto',
+      textTheme: GoogleFonts.dmSansTextTheme(),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -32,9 +32,10 @@ class AppTheme {
     borderRadius: BorderRadius.circular(24),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.04),
-        blurRadius: 16,
-        offset: const Offset(0, 4),
+        color: const Color(0xFF18457C).withOpacity(0.03),
+        blurRadius: 24,
+        spreadRadius: 0,
+        offset: const Offset(0, 8),
       ),
     ],
   );
