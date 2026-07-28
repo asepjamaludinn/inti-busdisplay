@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'controllers/display_controller.dart';
 import 'theme/app_theme.dart';
+import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -22,7 +23,7 @@ class SmartBusDisplayApp extends StatelessWidget {
       title: 'PT INTI Bus Display',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const MainNavigation(),
+      home: const SplashScreen(),
     );
   }
 }
