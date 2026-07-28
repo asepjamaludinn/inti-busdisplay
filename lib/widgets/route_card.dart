@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 
@@ -10,7 +11,7 @@ class RouteCard extends StatefulWidget {
 }
 
 class _RouteCardState extends State<RouteCard> {
-  String _selectedRoute = 'B2 Bandung ↔ Jakarta';
+  String _selectedRoute = 'B2 • Bandung - Jakarta';
   bool _isPergi = true;
 
   @override
@@ -21,11 +22,11 @@ class _RouteCardState extends State<RouteCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Bus Route',
-            style: TextStyle(
+            style: GoogleFonts.dmSans(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
           ),
@@ -46,18 +47,19 @@ class _RouteCardState extends State<RouteCard> {
                 ),
                 items:
                     [
-                          'B1 Bandung ↔ Garut',
-                          'B2 Bandung ↔ Jakarta',
-                          'B3 Bandung ↔ Bekasi',
-                          'B4 Bandung ↔ Bogor',
+                          'B1 • Bandung - Garut',
+                          'B2 • Bandung - Jakarta',
+                          'B3 • Bandung - Bekasi',
+                          'B4 • Bandung - Bogor',
                         ]
                         .map(
                           (e) => DropdownMenuItem(
                             value: e,
                             child: Text(
                               e,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
+                              style: GoogleFonts.dmSans(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -86,15 +88,24 @@ class _RouteCardState extends State<RouteCard> {
                             ? AppColors.primary
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(24),
+                        boxShadow: _isPergi
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : [],
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         'Pergi',
-                        style: TextStyle(
+                        style: GoogleFonts.dmSans(
                           color: _isPergi
                               ? Colors.white
                               : AppColors.textSecondary,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -110,15 +121,24 @@ class _RouteCardState extends State<RouteCard> {
                             ? AppColors.primary
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(24),
+                        boxShadow: !_isPergi
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : [],
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         'Pulang',
-                        style: TextStyle(
+                        style: GoogleFonts.dmSans(
                           color: !_isPergi
                               ? Colors.white
                               : AppColors.textSecondary,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),

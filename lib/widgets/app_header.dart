@@ -61,7 +61,7 @@ class AppHeader extends StatelessWidget {
               color: Colors.white70,
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
+              letterSpacing: 1.5,
             ),
           ),
           const SizedBox(height: 4),
