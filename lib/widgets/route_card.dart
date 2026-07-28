@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../controllers/display_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 
-class RouteCard extends StatefulWidget {
+class RouteCard extends StatelessWidget {
   const RouteCard({Key? key}) : super(key: key);
 
   @override
-  State<RouteCard> createState() => _RouteCardState();
-}
-
-class _RouteCardState extends State<RouteCard> {
-  String _selectedRoute = 'B2 • Bandung - Jakarta';
-  bool _isPergi = true;
-
-  @override
   Widget build(BuildContext context) {
+    final controller = context.watch<DisplayController>();
+
     return Container(
       decoration: AppTheme.cardDecoration,
       padding: const EdgeInsets.all(20),
@@ -39,7 +35,7 @@ class _RouteCardState extends State<RouteCard> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _selectedRoute,
+                value: controller.selectedRoute,
                 isExpanded: true,
                 icon: const Icon(
                   Icons.keyboard_arrow_down_rounded,
@@ -65,7 +61,7 @@ class _RouteCardState extends State<RouteCard> {
                           ),
                         )
                         .toList(),
-                onChanged: (val) => setState(() => _selectedRoute = val!),
+                onChanged: (val) => controller.setRoute(val!),
               ),
             ),
           ),
@@ -80,15 +76,15 @@ class _RouteCardState extends State<RouteCard> {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _isPergi = true),
+                    onTap: () => controller.setDirection(true),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       decoration: BoxDecoration(
-                        color: _isPergi
+                        color: controller.isPergi
                             ? AppColors.primary
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(24),
-                        boxShadow: _isPergi
+                        boxShadow: controller.isPergi
                             ? [
                                 BoxShadow(
                                   color: AppColors.primary.withOpacity(0.3),
@@ -102,7 +98,7 @@ class _RouteCardState extends State<RouteCard> {
                       child: Text(
                         'Pergi',
                         style: GoogleFonts.dmSans(
-                          color: _isPergi
+                          color: controller.isPergi
                               ? Colors.white
                               : AppColors.textSecondary,
                           fontWeight: FontWeight.w700,
@@ -113,15 +109,15 @@ class _RouteCardState extends State<RouteCard> {
                 ),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _isPergi = false),
+                    onTap: () => controller.setDirection(false),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       decoration: BoxDecoration(
-                        color: !_isPergi
+                        color: !controller.isPergi
                             ? AppColors.primary
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(24),
-                        boxShadow: !_isPergi
+                        boxShadow: !controller.isPergi
                             ? [
                                 BoxShadow(
                                   color: AppColors.primary.withOpacity(0.3),
@@ -135,7 +131,7 @@ class _RouteCardState extends State<RouteCard> {
                       child: Text(
                         'Pulang',
                         style: GoogleFonts.dmSans(
-                          color: !_isPergi
+                          color: !controller.isPergi
                               ? Colors.white
                               : AppColors.textSecondary,
                           fontWeight: FontWeight.w700,
