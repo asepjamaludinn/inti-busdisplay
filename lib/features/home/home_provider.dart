@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class DisplayController extends ChangeNotifier {
+class HomeProvider extends ChangeNotifier {
   String _selectedRoute = 'B2 • Bandung - Jakarta';
   bool _isPergi = true;
 

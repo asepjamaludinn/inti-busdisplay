@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/app_colors.dart';
-import '../main.dart';
+import '../../core/theme/app_colors.dart';
+import '../main_navigation/main_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -105,7 +105,6 @@ class _SplashScreenState extends State<SplashScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-
             SlideTransition(
               position: _logoSlide,
               child: FadeTransition(
@@ -124,7 +123,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
             ),
-
             Transform.translate(
               offset: const Offset(0, -12),
               child: SlideTransition(
@@ -134,7 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Text(
                     'Smart Bus Display',
                     style: GoogleFonts.dmSans(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 20,
                       fontWeight: FontWeight.w300,
                       letterSpacing: 0.0,
@@ -143,7 +141,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
             ),
-
             const Spacer(),
           ],
         ),
