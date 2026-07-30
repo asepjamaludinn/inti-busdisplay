@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'widgets/app_header.dart';
 import 'widgets/status_card.dart';
-import 'widgets/search_box.dart';
 import 'widgets/route_card.dart';
 import 'widgets/animation_mode_card.dart';
 import 'widgets/preview_card.dart';
@@ -17,36 +16,47 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const AppHeader(),
-              const SizedBox(height: 16),
-              const SearchBox(),
-              const SizedBox(height: 18),
-              const PreviewCard(),
-              const SizedBox(height: 16),
-              const StatusCard(),
-              const SizedBox(height: 16),
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 13,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(24, 24, 12, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Expanded(child: RouteCard()),
-                    SizedBox(width: 16),
-                    Expanded(child: AnimationModeCard()),
+                    AppHeader(),
+                    SizedBox(height: 20),
+                    PreviewCard(),
+                    SizedBox(height: 16),
+                    StatusCard(),
+                    SizedBox(height: 16),
+                    RouteCard(),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const DisplaySettingCard(),
-              const SizedBox(height: 20),
-              const QuickActionCard(),
-            ],
-          ),
+            ),
+
+            Expanded(
+              flex: 10,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(12, 24, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    AnimationModeCard(),
+                    SizedBox(height: 16),
+                    DisplaySettingCard(),
+                    SizedBox(height: 16),
+                    QuickActionCard(),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -43,131 +43,122 @@ class AnimationModeCard extends StatelessWidget {
 
     return Container(
       decoration: AppTheme.coloredCardDecoration(AppColors.amber),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(18),
+      child: Row(
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.auto_awesome_motion_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Animasi',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome_motion_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Mode Animasi',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: controller.animMode,
-                isExpanded: true,
-                borderRadius: BorderRadius.circular(18),
-                dropdownColor: AppColors.amberDeep,
-                elevation: 6,
-                itemHeight: 48,
-                icon: const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                style: GoogleFonts.dmSans(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: Colors.white,
-                ),
-                selectedItemBuilder: (context) => _modes
-                    .map(
-                      (mode) => Row(
-                        children: [
-                          Icon(_iconFor(mode), color: Colors.white, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: controller.animMode,
+                      isExpanded: true,
+                      borderRadius: BorderRadius.circular(18),
+                      dropdownColor: AppColors.amberDeep,
+                      elevation: 6,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      style: GoogleFonts.dmSans(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                      selectedItemBuilder: (context) => _modes
+                          .map(
+                            (mode) => Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 mode,
-                                style: GoogleFonts.dmSans(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      items: _modes
+                          .map(
+                            (mode) => DropdownMenuItem(
+                              value: mode,
+                              child: Text(
+                                mode,
+                                style: const TextStyle(
+                                  fontSize: 14,
                                   color: Colors.white,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )
-                    .toList(),
-                items: _modes
-                    .map(
-                      (mode) => DropdownMenuItem(
-                        value: mode,
-                        child: Row(
-                          children: [
-                            Icon(_iconFor(mode), color: Colors.white, size: 16),
-                            const SizedBox(width: 10),
-                            Text(
-                              mode,
-                              style: GoogleFonts.dmSans(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (val) => controller.setAnimMode(val!),
-              ),
+                          )
+                          .toList(),
+                      onChanged: (val) => controller.setAnimMode(val!),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          Expanded(
-            child: Center(
-              child: Container(
-                width: 64,
-                height: 64,
+          const SizedBox(width: 20),
+
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   _iconFor(controller.animMode),
                   color: Colors.white,
-                  size: 30,
+                  size: 24,
                 ),
               ),
-            ),
-          ),
-          Text(
-            controller.animMode == 'Static'
-                ? 'Teks diam'
-                : controller.animMode == 'Blink'
-                ? 'Teks berkedip'
-                : 'Bergerak ${controller.speed.toInt()}%',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.dmSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.8),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                controller.animMode == 'Static'
+                    ? 'Teks diam'
+                    : controller.animMode == 'Blink'
+                    ? 'Berkedip'
+                    : 'Speed ${controller.speed.toInt()}%',
+                style: GoogleFonts.dmSans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
+            ],
           ),
         ],
       ),

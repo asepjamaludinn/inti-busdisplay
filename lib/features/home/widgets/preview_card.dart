@@ -70,12 +70,14 @@ class _PreviewCardState extends State<PreviewCard>
         return Icons.crop_square_rounded;
       case 'Scroll Right':
         return Icons.arrow_forward_rounded;
+      case 'Scroll Left':
+        return Icons.arrow_back_rounded;
       case 'Scroll Up':
         return Icons.arrow_upward_rounded;
       case 'Scroll Down':
         return Icons.arrow_downward_rounded;
       default:
-        return Icons.arrow_back_rounded;
+        return Icons.sync_alt_rounded;
     }
   }
 
@@ -109,12 +111,10 @@ class _PreviewCardState extends State<PreviewCard>
     final controller = context.watch<HomeProvider>();
     _syncAnimation(controller.animMode, controller.speed);
 
-    final code = controller.selectedRoute.split(' • ').first;
-    final path = controller.selectedRoute.split(' • ').last;
-    final parts = path.split(' - ');
+    final route = controller.selectedRoute;
     final label = controller.isPergi
-        ? '$code | ${parts.first.toUpperCase()} \u2192 ${parts.last.toUpperCase()}'
-        : '$code | ${parts.last.toUpperCase()} \u2192 ${parts.first.toUpperCase()}';
+        ? '${route.code} | ${route.origin.toUpperCase()} \u2192 ${route.destination.toUpperCase()}'
+        : '${route.code} | ${route.destination.toUpperCase()} \u2192 ${route.origin.toUpperCase()}';
 
     return AspectRatio(
       aspectRatio: kP5PanelAspectRatio,
@@ -141,17 +141,28 @@ class _PreviewCardState extends State<PreviewCard>
             final panelW = constraints.maxWidth;
             final panelH = constraints.maxHeight;
             final horizontalInset = 20.0;
-            double fontSize = panelH * 0.34;
+
+            final double fontScale = (controller.fontSize / 16.0).clamp(
+              0.2,
+              5.0,
+            );
+            double fontSize = panelH * 0.34 * fontScale;
+
+            final double brightnessAlpha = (controller.brightness / 100.0)
+                .clamp(0.05, 1.0);
+            final Color dynamicLedColor = AppColors.ledText.withValues(
+              alpha: brightnessAlpha,
+            );
 
             TextStyle buildStyle(double size) => TextStyle(
               fontFamily: 'Courier',
               fontWeight: FontWeight.bold,
               letterSpacing: 1.5,
-              color: AppColors.ledText,
+              color: dynamicLedColor,
               fontSize: size,
               shadows: [
-                Shadow(color: AppColors.ledText, blurRadius: 12),
-                Shadow(color: AppColors.ledText, blurRadius: 24),
+                Shadow(color: dynamicLedColor, blurRadius: 12),
+                Shadow(color: dynamicLedColor, blurRadius: 24),
               ],
             );
 
@@ -167,6 +178,7 @@ class _PreviewCardState extends State<PreviewCard>
                 controller.animMode == 'Scroll Left' ||
                 controller.animMode == 'Scroll Right' ||
                 controller.animMode == 'Running';
+
             if (!travelsHorizontally &&
                 tp.width > panelW - horizontalInset * 2) {
               final scale = (panelW - horizontalInset * 2) / tp.width;
@@ -189,14 +201,16 @@ class _PreviewCardState extends State<PreviewCard>
                       tp.height,
                       _controller.value,
                     );
-                    final opacity = controller.animMode == 'Blink'
+
+                    final blinkOpacity = controller.animMode == 'Blink'
                         ? (_controller.value < 0.5 ? 1.0 : 0.12)
                         : 1.0;
+
                     return Positioned(
                       left: offset.dx,
                       top: offset.dy,
                       child: Opacity(
-                        opacity: opacity,
+                        opacity: blinkOpacity,
                         child: Text(
                           label,
                           maxLines: 1,
@@ -215,7 +229,9 @@ class _PreviewCardState extends State<PreviewCard>
                     children: [
                       Icon(
                         Icons.monitor_rounded,
-                        color: AppColors.ledText.withValues(alpha: 0.7),
+                        color: dynamicLedColor.withValues(
+                          alpha: brightnessAlpha * 0.7,
+                        ),
                         size: 13,
                       ),
                       const SizedBox(width: 5),

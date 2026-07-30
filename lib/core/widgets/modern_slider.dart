@@ -36,15 +36,15 @@ class ModernSlider extends StatelessWidget {
             ),
             const Spacer(),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 value.toInt().toString(),
                 style: TextStyle(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   fontSize: 12,
                   color: color,
                 ),
@@ -52,14 +52,19 @@ class ModernSlider extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 4),
         SliderTheme(
           data: SliderThemeData(
             activeTrackColor: color,
             inactiveTrackColor: AppColors.background,
-            thumbColor: color,
-            trackHeight: 4.0,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+            thumbColor: Colors.white,
+            trackHeight: 6.0,
+            overlayColor: color.withValues(alpha: 0.2),
+            thumbShape: const RoundSliderThumbShape(
+              enabledThumbRadius: 10.0,
+              elevation: 4,
+            ),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0),
           ),
           child: Slider(value: value, min: 0, max: 100, onChanged: onChanged),
         ),

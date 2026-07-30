@@ -32,10 +32,10 @@ class AppTheme {
     borderRadius: BorderRadius.circular(28),
     boxShadow: [
       BoxShadow(
-        color: AppColors.primary.withValues(alpha: 0.06),
-        blurRadius: 28,
+        color: AppColors.textPrimary.withValues(alpha: 0.04),
+        blurRadius: 32,
         spreadRadius: 0,
-        offset: const Offset(0, 10),
+        offset: const Offset(0, 12),
       ),
     ],
   );
@@ -49,10 +49,10 @@ class AppTheme {
       borderRadius: BorderRadius.circular(radius),
       boxShadow: [
         BoxShadow(
-          color: color.withValues(alpha: 0.35),
-          blurRadius: 24,
-          spreadRadius: 0,
-          offset: const Offset(0, 10),
+          color: color.withValues(alpha: 0.25),
+          blurRadius: 28,
+          spreadRadius: -4,
+          offset: const Offset(0, 12),
         ),
       ],
     );
@@ -71,9 +71,9 @@ class AppTheme {
       borderRadius: BorderRadius.circular(radius),
       boxShadow: [
         BoxShadow(
-          color: colors.last.withValues(alpha: 0.35),
+          color: colors.last.withValues(alpha: 0.25),
           blurRadius: 28,
-          spreadRadius: 0,
+          spreadRadius: -4,
           offset: const Offset(0, 12),
         ),
       ],
