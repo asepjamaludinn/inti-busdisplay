@@ -14,8 +14,15 @@ class RouteCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+        titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+
         title: Text(
           'Tambah Rute Baru',
           style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 18),
@@ -32,6 +39,11 @@ class RouteCard extends StatelessWidget {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
+            ),
+
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
             ),
           ),
         ),

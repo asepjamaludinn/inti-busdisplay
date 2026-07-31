@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
-import '../home/home_screen.dart';
+import '../main_navigation/main_navigation.dart'; // Import sudah diperbarui
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -70,8 +70,9 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
+            // Routing sudah diubah ke MainNavigation
             pageBuilder: (context, animation, secondaryAnimation) =>
-                const HomeScreen(),
+                const MainNavigation(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   return FadeTransition(opacity: animation, child: child);

@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/route_model.dart';
 
 class ApiService {
-  static const String serverIp = '192.168.1.100';
-  static const String baseUrl = 'http://$serverIp:3000/api';
+  static final String serverIp = dotenv.env['BACKEND_IP'] ?? '127.0.0.1';
+  static final String port = dotenv.env['BACKEND_PORT'] ?? '3000';
+
+  static final String baseUrl = 'http://$serverIp:$port/api';
 
   String get currentIp => serverIp;
 

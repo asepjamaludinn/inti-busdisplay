@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../home/home_screen.dart';
+import '../settings/settings_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -11,13 +12,9 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
-  final List<Widget> _pages = [
-    const HomeScreen(),
-    const Center(child: Text('Routes')),
-    const Center(child: Text('History')),
-    const Center(child: Text('Devices')),
-    const Center(child: Text('Settings')),
-  ];
+
+  // Hanya menyisakan HomeScreen dan SettingsScreen
+  final List<Widget> _pages = [const HomeScreen(), const SettingsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -51,18 +48,6 @@ class _MainNavigationState extends State<MainNavigation> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_rounded),
                 label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.route_rounded),
-                label: 'Routes',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history_rounded),
-                label: 'History',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.devices_rounded),
-                label: 'Devices',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.settings_rounded),

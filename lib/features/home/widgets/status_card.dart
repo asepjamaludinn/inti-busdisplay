@@ -7,6 +7,114 @@ import '../../../core/theme/app_theme.dart';
 class StatusCard extends StatelessWidget {
   const StatusCard({super.key});
 
+  void _showBluetoothScanner(BuildContext context) {
+    final provider = context.read<HomeProvider>();
+    provider.startBleScan();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Consumer<HomeProvider>(
+        builder: (context, prov, child) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Pindai Panel Display (BLE)',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (prov.isScanning)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else
+                      IconButton(
+                        icon: const Icon(Icons.refresh_rounded),
+                        onPressed: () => prov.startBleScan(),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (prov.scanResults.isEmpty && !prov.isScanning)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: Text('Tidak ada perangkat ditemukan.'),
+                    ),
+                  )
+                else
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: prov.scanResults.length,
+
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final result = prov.scanResults[index];
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(
+                            Icons.bluetooth_rounded,
+                            color: AppColors.secondary,
+                          ),
+                          title: Text(
+                            result.device.platformName,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(
+                            result.device.remoteId.toString(),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          trailing: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () async {
+                              final success = await prov.connectToDevice(
+                                result.device,
+                              );
+                              if (success && ctx.mounted) Navigator.pop(ctx);
+                            },
+                            child: const Text(
+                              'Hubungkan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<HomeProvider>();
@@ -18,7 +126,6 @@ class StatusCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-
       decoration: AppTheme.gradientCardDecoration(
         isConnected
             ? AppColors.statusGradient
@@ -49,7 +156,7 @@ class StatusCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Running Text Bus 01',
+                  controller.connectionText,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.95),
                     fontSize: 14,
@@ -58,7 +165,7 @@ class StatusCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$statusText • ${controller.serverIp}',
+                  '$statusText • Koneksi Bluetooth Lokal',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.65),
                     fontSize: 12,
@@ -68,16 +175,12 @@ class StatusCard extends StatelessWidget {
               ],
             ),
           ),
-
           _CircleIconButton(
-            icon: Icons.refresh_rounded,
-            onTap: () => context.read<HomeProvider>().refreshConnectionStatus(),
-          ),
-          const SizedBox(width: 8),
-          _CircleIconButton(
-            icon: Icons.power_settings_new_rounded,
-            onTap: () {},
-            filled: true,
+            icon: isConnected
+                ? Icons.bluetooth_connected_rounded
+                : Icons.bluetooth_searching_rounded,
+            onTap: () => _showBluetoothScanner(context),
+            filled: isConnected,
           ),
         ],
       ),
@@ -107,7 +210,7 @@ class _CircleIconButton extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: Icon(
             icon,
-            size: 15,
+            size: 18,
             color: filled ? AppColors.primary : Colors.white,
           ),
         ),
