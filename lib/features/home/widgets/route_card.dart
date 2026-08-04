@@ -15,13 +15,15 @@ class RouteCard extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         scrollable: true,
+
+        alignment: Alignment.topCenter,
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
 
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
-        titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        titlePadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
         contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
 
         title: Text(
           'Tambah Rute Baru',
@@ -40,7 +42,6 @@ class RouteCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
-
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,

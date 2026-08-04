@@ -78,4 +78,33 @@ class ApiService {
       return false;
     }
   }
+
+  Future<bool> savePreset(String name, Map<String, dynamic> payload) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/display/presets'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'name': name, 'payload': payload}),
+      );
+      return response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Error saving preset: $e');
+      return false;
+    }
+  }
+
+  Future<List<dynamic>> fetchPresets() async {
+    try {
+      final response = await http
+          .get(Uri.parse('$baseUrl/display/presets'))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> body = jsonDecode(response.body);
+        return body['data'] ?? [];
+      }
+    } catch (e) {
+      debugPrint('Error fetching presets: $e');
+    }
+    return [];
+  }
 }

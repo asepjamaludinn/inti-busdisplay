@@ -14,6 +14,8 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
     DeviceOrientation.landscapeLeft,
   ]).then((_) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
     runApp(
       MultiProvider(
         providers: [ChangeNotifierProvider(create: (_) => HomeProvider())],

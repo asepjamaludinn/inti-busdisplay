@@ -210,6 +210,52 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resetToDefault() {
+    if (_routes.isNotEmpty) _selectedRoute = _routes.first;
+    _isPergi = true;
+    _animMode = 'Scroll Left';
+    _speed = 50;
+    _brightness = 80;
+    _fontSize = 16;
+    notifyListeners();
+  }
+
+  Future<bool> saveCurrentPreset(String presetName) async {
+    final payload = {
+      "route": _selectedRoute.fullDisplayName,
+      "direction": _isPergi ? "Pergi" : "Pulang",
+      "animation": _animMode,
+      "speed": _speed.toInt(),
+      "brightness": _brightness.toInt(),
+      "fontSize": _fontSize.toInt(),
+    };
+    return await _apiService.savePreset(presetName, payload);
+  }
+
+  Future<List<dynamic>> getSavedPresets() async {
+    return await _apiService.fetchPresets();
+  }
+
+  void applyPreset(Map<String, dynamic> payload) {
+    try {
+      final routeName = payload['route'] as String?;
+      if (routeName != null) {
+        _selectedRoute = _routes.firstWhere(
+          (r) => r.fullDisplayName == routeName,
+          orElse: () => _routes.first,
+        );
+      }
+      _isPergi = payload['direction'] == 'Pergi';
+      _animMode = payload['animation'] ?? 'Static';
+      _speed = (payload['speed'] as num?)?.toDouble() ?? 50.0;
+      _brightness = (payload['brightness'] as num?)?.toDouble() ?? 80.0;
+      _fontSize = (payload['fontSize'] as num?)?.toDouble() ?? 16.0;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Gagal memuat preset: $e');
+    }
+  }
+
   Future<void> sendPayloadToDevice(BuildContext context) async {
     if (!_isBleConnected) {
       ScaffoldMessenger.of(context).showSnackBar(

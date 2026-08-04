@@ -29,7 +29,7 @@ class StatusCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Pindai Panel Display (BLE)',
+                      'Pindai Panel Display',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -165,7 +165,7 @@ class StatusCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$statusText • Koneksi Bluetooth Lokal',
+                  '$statusText • Koneksi Bluetooth',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.65),
                     fontSize: 12,
