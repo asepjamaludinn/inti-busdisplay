@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../home_provider.dart';
+import '../../../core/providers/route_provider.dart';
+import '../../../core/providers/display_settings_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 const double kP5PanelAspectRatio = 3.6;
@@ -108,11 +109,12 @@ class _PreviewCardState extends State<PreviewCard>
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<HomeProvider>();
-    _syncAnimation(controller.animMode, controller.speed);
+    final routeProvider = context.watch<RouteProvider>();
+    final settingsProvider = context.watch<DisplaySettingsProvider>();
+    _syncAnimation(settingsProvider.animMode, settingsProvider.speed);
 
-    final route = controller.selectedRoute;
-    final label = controller.isPergi
+    final route = routeProvider.selectedRoute;
+    final label = routeProvider.isPergi
         ? '${route.code} | ${route.origin.toUpperCase()} \u2192 ${route.destination.toUpperCase()}'
         : '${route.code} | ${route.destination.toUpperCase()} \u2192 ${route.origin.toUpperCase()}';
 
@@ -142,13 +144,13 @@ class _PreviewCardState extends State<PreviewCard>
             final panelH = constraints.maxHeight;
             final horizontalInset = 20.0;
 
-            final double fontScale = (controller.fontSize / 16.0).clamp(
+            final double fontScale = (settingsProvider.fontSize / 16.0).clamp(
               0.2,
               5.0,
             );
             double fontSize = panelH * 0.34 * fontScale;
 
-            final double brightnessAlpha = (controller.brightness / 100.0)
+            final double brightnessAlpha = (settingsProvider.brightness / 100.0)
                 .clamp(0.05, 1.0);
             final Color dynamicLedColor = AppColors.ledText.withValues(
               alpha: brightnessAlpha,
@@ -175,9 +177,9 @@ class _PreviewCardState extends State<PreviewCard>
             var tp = measure(fontSize);
 
             final travelsHorizontally =
-                controller.animMode == 'Scroll Left' ||
-                controller.animMode == 'Scroll Right' ||
-                controller.animMode == 'Running';
+                settingsProvider.animMode == 'Scroll Left' ||
+                settingsProvider.animMode == 'Scroll Right' ||
+                settingsProvider.animMode == 'Running';
 
             if (!travelsHorizontally &&
                 tp.width > panelW - horizontalInset * 2) {
@@ -194,7 +196,7 @@ class _PreviewCardState extends State<PreviewCard>
                   animation: _controller,
                   builder: (context, _) {
                     final offset = _offsetFor(
-                      controller.animMode,
+                      settingsProvider.animMode,
                       panelW,
                       panelH,
                       tp.width,
@@ -202,7 +204,7 @@ class _PreviewCardState extends State<PreviewCard>
                       _controller.value,
                     );
 
-                    final blinkOpacity = controller.animMode == 'Blink'
+                    final blinkOpacity = settingsProvider.animMode == 'Blink'
                         ? (_controller.value < 0.5 ? 1.0 : 0.12)
                         : 1.0;
 
@@ -246,13 +248,13 @@ class _PreviewCardState extends State<PreviewCard>
                       ),
                       const Spacer(),
                       Icon(
-                        _animIcon(controller.animMode),
+                        _animIcon(settingsProvider.animMode),
                         color: Colors.white.withValues(alpha: 0.45),
                         size: 13,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        controller.animMode,
+                        settingsProvider.animMode,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.45),
                           fontSize: 9,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../home_provider.dart';
+import '../../../core/providers/connection_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -8,7 +8,7 @@ class StatusCard extends StatelessWidget {
   const StatusCard({super.key});
 
   void _showBluetoothScanner(BuildContext context) {
-    final provider = context.read<HomeProvider>();
+    final provider = context.read<ConnectionProvider>();
     provider.startBleScan();
 
     showModalBottomSheet(
@@ -17,7 +17,7 @@ class StatusCard extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Consumer<HomeProvider>(
+      builder: (ctx) => Consumer<ConnectionProvider>(
         builder: (context, prov, child) {
           return Padding(
             padding: const EdgeInsets.all(24),
@@ -62,7 +62,6 @@ class StatusCard extends StatelessWidget {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: prov.scanResults.length,
-
                       separatorBuilder: (context, index) =>
                           const Divider(height: 1),
                       itemBuilder: (context, index) {
@@ -117,8 +116,8 @@ class StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<HomeProvider>();
-    final isConnected = controller.isConnected;
+    final connectionProvider = context.watch<ConnectionProvider>();
+    final isConnected = connectionProvider.isBleConnected;
 
     final dotColor = isConnected ? AppColors.success : AppColors.danger;
     final statusText = isConnected ? 'Terhubung' : 'Terputus';
@@ -156,7 +155,7 @@ class StatusCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  controller.connectionText,
+                  connectionProvider.connectionText,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.95),
                     fontSize: 14,

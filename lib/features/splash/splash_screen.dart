@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
-import '../main_navigation/main_navigation.dart'; // Import sudah diperbarui
+import '../../core/services/api_service.dart';
+import '../main_navigation/main_navigation.dart';
+import '../pairing/pairing_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -66,22 +68,25 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 3500), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            // Routing sudah diubah ke MainNavigation
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const MainNavigation(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-            transitionDuration: const Duration(milliseconds: 1000),
-          ),
-        );
-      }
-    });
+    Future.delayed(const Duration(milliseconds: 3500), _navigateNext);
+  }
+
+  Future<void> _navigateNext() async {
+    final apiService = ApiService();
+    final paired = await apiService.isPaired();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            paired ? const MainNavigation() : const PairingScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 1000),
+      ),
+    );
   }
 
   @override

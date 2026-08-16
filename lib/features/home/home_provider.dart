@@ -30,6 +30,9 @@ class HomeProvider extends ChangeNotifier {
   double _brightness = 80;
   double _fontSize = 16;
 
+  String? _loadedPresetId;
+  String? _loadedPresetName;
+
   HomeProvider() {
     _selectedRoute = _routes.first;
     _initData();
@@ -47,10 +50,35 @@ class HomeProvider extends ChangeNotifier {
   double get speed => _speed;
   double get brightness => _brightness;
   double get fontSize => _fontSize;
+  String? get loadedPresetId => _loadedPresetId;
+  String? get loadedPresetName => _loadedPresetName;
+  bool get hasLoadedPreset => _loadedPresetId != null;
 
   Future<void> _initData() async {
     _isApiConnected = await _apiService.checkConnection();
     await loadRoutesFromServer();
+  }
+
+  void _showFeedback(
+    BuildContext context, {
+    required String message,
+    required Color color,
+  }) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: Text(
+          message,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> startBleScan() async {
@@ -113,7 +141,7 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addRoute(String input) async {
+  Future<void> addRoute(BuildContext context, String input) async {
     if (input.trim().isEmpty) return;
 
     try {
@@ -144,23 +172,68 @@ class HomeProvider extends ChangeNotifier {
       if (origin.isEmpty) origin = 'Asal';
       if (destination.isEmpty) destination = 'Tujuan';
 
+      final isDuplicateCode = _routes.any(
+        (r) => r.code.toLowerCase() == code.toLowerCase(),
+      );
+      if (isDuplicateCode) {
+        if (context.mounted) {
+          _showFeedback(
+            context,
+            message: 'Kode rute "$code" sudah terdaftar.',
+            color: const Color(0xFFF59E0B),
+          );
+        }
+        return;
+      }
+
+      final isDuplicateRouteName = _routes.any(
+        (r) =>
+            (r.origin.toLowerCase() == origin.toLowerCase() &&
+                r.destination.toLowerCase() == destination.toLowerCase()) ||
+            (r.origin.toLowerCase() == destination.toLowerCase() &&
+                r.destination.toLowerCase() == origin.toLowerCase()),
+      );
+      if (isDuplicateRouteName) {
+        if (context.mounted) {
+          _showFeedback(
+            context,
+            message:
+                'Rute "$origin - $destination" sudah terdaftar (arah sebaliknya '
+                'sudah ada, gunakan toggle Pergi/Pulang).',
+            color: const Color(0xFFF59E0B),
+          );
+        }
+        return;
+      }
+
       final newRoute = RouteModel(
         code: code,
         origin: origin,
         destination: destination,
       );
 
-      if (!_routes.any((r) => r.code == newRoute.code)) {
-        final savedRoute = await _apiService.addRoute(newRoute);
+      final result = await _apiService.addRoute(newRoute);
 
-        if (savedRoute != null) {
-          _routes.add(savedRoute);
-          _selectedRoute = savedRoute;
-          notifyListeners();
-        }
+      if (result.success && result.data != null) {
+        _routes.add(result.data!);
+        _selectedRoute = result.data!;
+        notifyListeners();
+      } else if (context.mounted) {
+        _showFeedback(
+          context,
+          message: result.message ?? 'Gagal menambahkan rute.',
+          color: const Color(0xFFEF4444),
+        );
       }
     } catch (e) {
       debugPrint("Format rute gagal diproses: $e");
+      if (context.mounted) {
+        _showFeedback(
+          context,
+          message: 'Format rute tidak valid.',
+          color: const Color(0xFFEF4444),
+        );
+      }
     }
   }
 
@@ -210,18 +283,27 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void resetToDefault() {
+  void resetToDefault(BuildContext context) {
     if (_routes.isNotEmpty) _selectedRoute = _routes.first;
     _isPergi = true;
     _animMode = 'Scroll Left';
     _speed = 50;
     _brightness = 80;
     _fontSize = 16;
+    _loadedPresetId = null;
+    _loadedPresetName = null;
+
     notifyListeners();
+
+    _showFeedback(
+      context,
+      message: 'Pengaturan berhasil direset ke default.',
+      color: const Color(0xFF22C55E),
+    );
   }
 
-  Future<bool> saveCurrentPreset(String presetName) async {
-    final payload = {
+  Map<String, dynamic> _buildPayload() {
+    return {
       "route": _selectedRoute.fullDisplayName,
       "direction": _isPergi ? "Pergi" : "Pulang",
       "animation": _animMode,
@@ -229,14 +311,79 @@ class HomeProvider extends ChangeNotifier {
       "brightness": _brightness.toInt(),
       "fontSize": _fontSize.toInt(),
     };
-    return await _apiService.savePreset(presetName, payload);
+  }
+
+  Future<ApiResult<void>> saveCurrentPreset(String presetName) async {
+    return await _apiService.savePreset(presetName, _buildPayload());
+  }
+
+  Future<void> overwriteLoadedPreset(BuildContext context) async {
+    if (_loadedPresetId == null) {
+      _showFeedback(
+        context,
+        message: 'Tidak ada preset yang sedang dimuat untuk ditimpa.',
+        color: const Color(0xFFF59E0B),
+      );
+      return;
+    }
+
+    final result = await _apiService.updatePreset(
+      _loadedPresetId!,
+      _loadedPresetName ?? 'Preset',
+      _buildPayload(),
+    );
+
+    if (context.mounted) {
+      _showFeedback(
+        context,
+        message:
+            result.message ??
+            (result.success
+                ? 'Preset "${_loadedPresetName ?? ''}" berhasil ditimpa dengan pengaturan saat ini.'
+                : 'Gagal menimpa preset.'),
+        color: result.success
+            ? const Color(0xFF22C55E)
+            : const Color(0xFFEF4444),
+      );
+    }
+  }
+
+  Future<void> overwritePreset(
+    BuildContext context,
+    String presetId,
+    String presetName,
+  ) async {
+    final result = await _apiService.updatePreset(
+      presetId,
+      presetName,
+      _buildPayload(),
+    );
+
+    if (context.mounted) {
+      _showFeedback(
+        context,
+        message:
+            result.message ??
+            (result.success
+                ? 'Preset "$presetName" berhasil ditimpa dengan pengaturan saat ini.'
+                : 'Gagal menimpa preset.'),
+        color: result.success
+            ? const Color(0xFF22C55E)
+            : const Color(0xFFEF4444),
+      );
+    }
   }
 
   Future<List<dynamic>> getSavedPresets() async {
     return await _apiService.fetchPresets();
   }
 
-  void applyPreset(Map<String, dynamic> payload) {
+  void applyPreset(
+    BuildContext context,
+    Map<String, dynamic> payload, {
+    String? presetId,
+    String? presetName,
+  }) {
     try {
       final routeName = payload['route'] as String?;
       if (routeName != null) {
@@ -250,60 +397,51 @@ class HomeProvider extends ChangeNotifier {
       _speed = (payload['speed'] as num?)?.toDouble() ?? 50.0;
       _brightness = (payload['brightness'] as num?)?.toDouble() ?? 80.0;
       _fontSize = (payload['fontSize'] as num?)?.toDouble() ?? 16.0;
+      _loadedPresetId = presetId;
+      _loadedPresetName = presetName;
+
       notifyListeners();
+
+      _showFeedback(
+        context,
+        message: presetName != null && presetName.isNotEmpty
+            ? 'Preset "$presetName" berhasil diterapkan.'
+            : 'Preset berhasil diterapkan.',
+        color: const Color(0xFF22C55E),
+      );
     } catch (e) {
       debugPrint('Gagal memuat preset: $e');
+      _showFeedback(
+        context,
+        message: 'Gagal menerapkan preset. Format data tidak valid.',
+        color: const Color(0xFFEF4444),
+      );
     }
   }
 
   Future<void> sendPayloadToDevice(BuildContext context) async {
     if (!_isBleConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFFF59E0B),
-          content: const Text(
-            'Silakan hubungkan Bluetooth ke Panel P5 terlebih dahulu.',
-          ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      _showFeedback(
+        context,
+        message: 'Silakan hubungkan Bluetooth ke Panel P5 terlebih dahulu.',
+        color: const Color(0xFFF59E0B),
       );
       return;
     }
 
-    final payload = {
-      "route": _selectedRoute.fullDisplayName,
-      "direction": _isPergi ? "Pergi" : "Pulang",
-      "animation": _animMode,
-      "speed": _speed.toInt(),
-      "brightness": _brightness.toInt(),
-      "fontSize": _fontSize.toInt(),
-    };
+    final payload = _buildPayload();
 
-    final bool success = await _bleService.sendPayload(payload);
+    final bool bleSuccess = await _bleService.sendPayload(payload);
+
+    unawaited(_apiService.sendDisplayConfig(payload));
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: success
-              ? const Color(0xFF22C55E)
-              : const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          content: Text(
-            success
-                ? 'Berhasil mengirim ke P5 Panel via Bluetooth!'
-                : 'Gagal mengirim data. Pastikan dekat dengan panel.',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
+      _showFeedback(
+        context,
+        message: bleSuccess
+            ? 'Berhasil mengirim ke P5 Panel via Bluetooth!'
+            : 'Gagal mengirim data. Pastikan dekat dengan panel.',
+        color: bleSuccess ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
       );
     }
   }

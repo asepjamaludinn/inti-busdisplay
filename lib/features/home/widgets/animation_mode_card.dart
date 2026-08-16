@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../home_provider.dart';
+import '../../../core/providers/display_settings_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -39,7 +39,7 @@ class AnimationModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<HomeProvider>();
+    final settingsProvider = context.watch<DisplaySettingsProvider>();
 
     return Container(
       decoration: AppTheme.coloredCardDecoration(AppColors.amber),
@@ -78,7 +78,7 @@ class AnimationModeCard extends StatelessWidget {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: controller.animMode,
+                      value: settingsProvider.animMode,
                       isExpanded: true,
                       borderRadius: BorderRadius.circular(18),
                       dropdownColor: AppColors.amberDeep,
@@ -120,7 +120,7 @@ class AnimationModeCard extends StatelessWidget {
                             ),
                           )
                           .toList(),
-                      onChanged: (val) => controller.setAnimMode(val!),
+                      onChanged: (val) => settingsProvider.setAnimMode(val!),
                     ),
                   ),
                 ),
@@ -128,7 +128,6 @@ class AnimationModeCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 20),
-
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -140,18 +139,18 @@ class AnimationModeCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  _iconFor(controller.animMode),
+                  _iconFor(settingsProvider.animMode),
                   color: Colors.white,
                   size: 24,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                controller.animMode == 'Static'
+                settingsProvider.animMode == 'Static'
                     ? 'Teks diam'
-                    : controller.animMode == 'Blink'
+                    : settingsProvider.animMode == 'Blink'
                     ? 'Berkedip'
-                    : 'Speed ${controller.speed.toInt()}%',
+                    : 'Speed ${settingsProvider.speed.toInt()}%',
                 style: GoogleFonts.dmSans(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,

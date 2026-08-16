@@ -1,0 +1,139 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/services/api_service.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/widgets/primary_button.dart';
+import '../main_navigation/main_navigation.dart';
+
+class PairingScreen extends StatefulWidget {
+  const PairingScreen({super.key});
+
+  @override
+  State<PairingScreen> createState() => _PairingScreenState();
+}
+
+class _PairingScreenState extends State<PairingScreen> {
+  final TextEditingController _codeController = TextEditingController();
+  final ApiService _apiService = ApiService();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  Future<void> _submit() async {
+    if (_codeController.text.trim().isEmpty) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await _apiService.pairDevice(_codeController.text);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result.success) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
+      );
+    } else {
+      setState(() => _errorMessage = result.message);
+    }
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              decoration: AppTheme.cardDecoration,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.phonelink_lock_rounded,
+                    color: AppColors.primary,
+                    size: 40,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Pasangkan Device',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Minta admin menjalankan perintah pairing di server, '
+                    'lalu masukkan kode yang muncul di sini.',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: _codeController,
+                    textCapitalization: TextCapitalization.characters,
+                    style: GoogleFonts.dmSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      letterSpacing: 4,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'KODE PAIRING',
+                      filled: true,
+                      fillColor: AppColors.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                    ),
+                  ),
+                  if (_errorMessage != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(
+                        color: AppColors.danger,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : PrimaryButton(
+                          label: 'Pasangkan',
+                          icon: Icons.link_rounded,
+                          gradient: AppColors.heroButtonGradient,
+                          onTap: _submit,
+                        ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

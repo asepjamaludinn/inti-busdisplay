@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../home_provider.dart';
+import '../../../core/providers/connection_provider.dart';
+import '../../../core/providers/display_settings_provider.dart';
+import '../../../core/providers/preset_provider.dart';
+import '../../../core/providers/route_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/display_payload_builder.dart';
+import '../../../core/utils/feedback_extension.dart';
 import '../../../core/widgets/primary_button.dart';
 
 class QuickActionCard extends StatelessWidget {
   const QuickActionCard({super.key});
 
+  Map<String, dynamic> _buildPayload(BuildContext context) {
+    final routeProvider = context.read<RouteProvider>();
+    final settingsProvider = context.read<DisplaySettingsProvider>();
+    return DisplayPayloadBuilder.build(
+      route: routeProvider.selectedRoute,
+      isPergi: routeProvider.isPergi,
+      animMode: settingsProvider.animMode,
+      speed: settingsProvider.speed,
+      brightness: settingsProvider.brightness,
+      fontSize: settingsProvider.fontSize,
+    );
+  }
+
   void _showSavePresetDialog(BuildContext context) {
-    final provider = context.read<HomeProvider>();
-    final TextEditingController nameController = TextEditingController();
+    final nameController = TextEditingController();
 
     showDialog(
       context: context,
@@ -18,12 +35,10 @@ class QuickActionCard extends StatelessWidget {
         scrollable: true,
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-
         insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
         titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
         contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
         actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-
         title: const Text(
           'Simpan Preset',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -38,7 +53,6 @@ class QuickActionCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
-
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
@@ -62,25 +76,18 @@ class QuickActionCard extends StatelessWidget {
             ),
             onPressed: () async {
               if (nameController.text.trim().isEmpty) return;
-              final success = await provider.saveCurrentPreset(
-                nameController.text.trim(),
-              );
-              if (ctx.mounted) {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: success
-                        ? AppColors.success
-                        : AppColors.danger,
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(
-                      success
-                          ? 'Preset berhasil disimpan!'
-                          : 'Gagal menyimpan preset.',
-                    ),
-                  ),
+
+              final payload = _buildPayload(context);
+              final result = await context
+                  .read<PresetProvider>()
+                  .saveCurrentPreset(nameController.text.trim(), payload);
+
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (context.mounted)
+                context.showResult(
+                  result,
+                  fallbackSuccessMessage: 'Preset berhasil disimpan!',
                 );
-              }
             },
             child: const Text('Simpan', style: TextStyle(color: Colors.white)),
           ),
@@ -89,8 +96,37 @@ class QuickActionCard extends StatelessWidget {
     );
   }
 
+  void _applyPreset(
+    BuildContext context,
+    Map<String, dynamic> payload, {
+    String? presetId,
+    String? presetName,
+  }) {
+    try {
+      context.read<RouteProvider>().applyRouteFromPayload(payload);
+      context.read<DisplaySettingsProvider>().applyFromPayload(payload);
+      context.read<PresetProvider>().markLoadedPreset(
+        presetId: presetId,
+        presetName: presetName,
+      );
+
+      context.showFeedback(
+        message: presetName != null && presetName.isNotEmpty
+            ? 'Preset "$presetName" berhasil diterapkan.'
+            : 'Preset berhasil diterapkan.',
+        color: AppColors.success,
+      );
+    } catch (e) {
+      debugPrint('Gagal memuat preset: $e');
+      context.showFeedback(
+        message: 'Gagal menerapkan preset. Format data tidak valid.',
+        color: AppColors.danger,
+      );
+    }
+  }
+
   void _showLoadPresetSheet(BuildContext context) {
-    final provider = context.read<HomeProvider>();
+    final presetProvider = context.read<PresetProvider>();
 
     showModalBottomSheet(
       context: context,
@@ -110,7 +146,7 @@ class QuickActionCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             FutureBuilder<List<dynamic>>(
-              future: provider.getSavedPresets(),
+              future: presetProvider.getSavedPresets(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -132,6 +168,8 @@ class QuickActionCard extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final preset = presets[index];
                       final payload = preset['payload'];
+                      final String? presetId = preset['id'] as String?;
+                      final String? presetName = preset['name'] as String?;
 
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
@@ -140,7 +178,7 @@ class QuickActionCard extends StatelessWidget {
                           color: AppColors.secondary,
                         ),
                         title: Text(
-                          preset['name'] ?? 'Preset',
+                          presetName ?? 'Preset',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(
@@ -158,7 +196,12 @@ class QuickActionCard extends StatelessWidget {
                             ),
                           ),
                           onPressed: () {
-                            provider.applyPreset(payload);
+                            _applyPreset(
+                              context,
+                              payload,
+                              presetId: presetId,
+                              presetName: presetName,
+                            );
                             Navigator.pop(ctx);
                           },
                           child: const Text(
@@ -178,8 +221,85 @@ class QuickActionCard extends StatelessWidget {
     );
   }
 
+  void _confirmOverwrite(BuildContext context, String presetName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Timpa Preset',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        content: Text(
+          'Timpa preset "$presetName" dengan pengaturan saat ini? '
+          'Data lama pada preset ini akan diganti.',
+          style: const TextStyle(height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Batal',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.amberDeep,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final payload = _buildPayload(context);
+              final result = await context
+                  .read<PresetProvider>()
+                  .overwriteLoadedPreset(payload);
+              if (context.mounted) context.showResult(result);
+            },
+            child: const Text(
+              'Timpa',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _resetToDefault(BuildContext context) {
+    context.read<RouteProvider>().resetSelection();
+    context.read<DisplaySettingsProvider>().resetToDefault();
+    context.read<PresetProvider>().clearLoadedPreset();
+
+    context.showFeedback(
+      message: 'Pengaturan berhasil direset ke default.',
+      color: AppColors.success,
+    );
+  }
+
+  Future<void> _sendToDevice(BuildContext context) async {
+    final payload = _buildPayload(context);
+    final result = await context.read<ConnectionProvider>().sendPayload(
+      payload,
+    );
+    if (context.mounted) context.showResult(result);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final presetProvider = context.watch<PresetProvider>();
+    final bool hasLoadedPreset = presetProvider.hasLoadedPreset;
+
     return Container(
       decoration: AppTheme.cardDecoration,
       padding: const EdgeInsets.all(18),
@@ -199,9 +319,7 @@ class QuickActionCard extends StatelessWidget {
             label: 'Kirim ke Display',
             icon: Icons.send_rounded,
             gradient: AppColors.heroButtonGradient,
-            onTap: () {
-              context.read<HomeProvider>().sendPayloadToDevice(context);
-            },
+            onTap: () => _sendToDevice(context),
           ),
           const SizedBox(height: 12),
           Row(
@@ -227,13 +345,26 @@ class QuickActionCard extends StatelessWidget {
               ),
             ],
           ),
+          if (hasLoadedPreset) ...[
+            const SizedBox(height: 12),
+            PrimaryButton(
+              label: 'Timpa Preset "${presetProvider.loadedPresetName ?? ''}"',
+              icon: Icons.published_with_changes_rounded,
+              isOutline: true,
+              tintColor: AppColors.amberDeep,
+              onTap: () => _confirmOverwrite(
+                context,
+                presetProvider.loadedPresetName ?? 'Preset',
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           PrimaryButton(
             label: 'Reset ke Default',
             icon: Icons.refresh_rounded,
             isOutline: true,
             tintColor: AppColors.danger,
-            onTap: () => context.read<HomeProvider>().resetToDefault(),
+            onTap: () => _resetToDefault(context),
           ),
         ],
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../home_provider.dart';
+import '../../../core/providers/display_settings_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/modern_slider.dart';
@@ -10,7 +10,7 @@ class DisplaySettingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<HomeProvider>();
+    final settingsProvider = context.watch<DisplaySettingsProvider>();
 
     return Container(
       decoration: AppTheme.cardDecoration,
@@ -31,24 +31,24 @@ class DisplaySettingCard extends StatelessWidget {
             label: 'Kecepatan Scroll',
             icon: Icons.speed_rounded,
             color: AppColors.secondary,
-            value: controller.speed,
-            onChanged: (val) => controller.setSpeed(val),
+            value: settingsProvider.speed,
+            onChanged: (val) => settingsProvider.setSpeed(val),
           ),
           const SizedBox(height: 16),
           ModernSlider(
             label: 'Kecerahan',
             icon: Icons.brightness_6_rounded,
             color: AppColors.amberDeep,
-            value: controller.brightness,
-            onChanged: (val) => controller.setBrightness(val),
+            value: settingsProvider.brightness,
+            onChanged: (val) => settingsProvider.setBrightness(val),
           ),
           const SizedBox(height: 16),
           ModernSlider(
             label: 'Ukuran Font',
             icon: Icons.format_size_rounded,
             color: AppColors.primary,
-            value: controller.fontSize,
-            onChanged: (val) => controller.setFontSize(val),
+            value: settingsProvider.fontSize,
+            onChanged: (val) => settingsProvider.setFontSize(val),
           ),
         ],
       ),

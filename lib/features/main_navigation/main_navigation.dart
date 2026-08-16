@@ -13,7 +13,6 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
-  // Hanya menyisakan HomeScreen dan SettingsScreen
   final List<Widget> _pages = [const HomeScreen(), const SettingsScreen()];
 
   @override
