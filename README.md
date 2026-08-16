@@ -121,8 +121,7 @@ lib/
 │   │       ├── route_card.dart        # CRUD rute
 │   │       ├── animation_mode_card.dart
 │   │       ├── display_setting_card.dart
-│   │       ├── quick_action_card.dart # Kirim, simpan/muat preset, reset
-│   │       └── search_box.dart
+│   │       └── quick_action_card.dart # Kirim, simpan/muat preset, reset
 │   └── settings/
 │       └── settings_screen.dart
 ├── app.dart                            # MaterialApp root

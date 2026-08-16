@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
@@ -22,6 +23,13 @@ class _SplashScreenState extends State<SplashScreen>
 
   late Animation<double> _textOpacity;
   late Animation<Offset> _textSlide;
+
+  // Timer disimpan di field agar bisa dibatalkan saat widget di-dispose.
+  // Tanpa ini, callback _navigateNext() tetap terpanggil walau widget
+  // sudah tidak ada di tree (mis. user keluar dari splash lebih awal),
+  // yang menyebabkan error "Timer is still pending" di test dan
+  // berpotensi memanggil Navigator pada context yang sudah tidak valid.
+  Timer? _navigationTimer;
 
   @override
   void initState() {
@@ -68,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 3500), _navigateNext);
+    _navigationTimer = Timer(const Duration(milliseconds: 3500), _navigateNext);
   }
 
   Future<void> _navigateNext() async {
@@ -91,6 +99,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _navigationTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
