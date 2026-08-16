@@ -17,9 +17,6 @@ void main() {
     test(
       'success() tanpa argumen tetap valid dengan data dan message null',
       () {
-        // Dipakai tipe nullable biasa (bukan <void>) karena Dart tidak
-        // mengizinkan ekspresi bertipe 'void' dibaca sebagai argumen —
-        // ini murni keterbatasan generic 'void' di Dart, bukan bug kode asli.
         final result = OperationResult<Object?>.success();
 
         expect(result.success, isTrue);

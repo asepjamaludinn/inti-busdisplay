@@ -24,11 +24,6 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _textOpacity;
   late Animation<Offset> _textSlide;
 
-  // Timer disimpan di field agar bisa dibatalkan saat widget di-dispose.
-  // Tanpa ini, callback _navigateNext() tetap terpanggil walau widget
-  // sudah tidak ada di tree (mis. user keluar dari splash lebih awal),
-  // yang menyebabkan error "Timer is still pending" di test dan
-  // berpotensi memanggil Navigator pada context yang sudah tidak valid.
   Timer? _navigationTimer;
 
   @override
