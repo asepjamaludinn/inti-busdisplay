@@ -83,11 +83,12 @@ class QuickActionCard extends StatelessWidget {
                   .saveCurrentPreset(nameController.text.trim(), payload);
 
               if (ctx.mounted) Navigator.pop(ctx);
-              if (context.mounted)
+              if (context.mounted) {
                 context.showResult(
                   result,
                   fallbackSuccessMessage: 'Preset berhasil disimpan!',
                 );
+              }
             },
             child: const Text('Simpan', style: TextStyle(color: Colors.white)),
           ),

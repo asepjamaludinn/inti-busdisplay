@@ -18,11 +18,13 @@ class ApiService {
 
   Future<Map<String, String>> _authHeaders() async {
     final token = await _deviceIdentity.getDeviceToken();
+    final deviceId = token != null
+        ? await _deviceIdentity.getOrCreateDeviceId()
+        : null;
     return {
       'Content-Type': 'application/json',
-      if (token != null)
-        'x-device-id': await _deviceIdentity.getOrCreateDeviceId(),
-      if (token != null) 'x-device-token': token,
+      'x-device-id': ?deviceId,
+      'x-device-token': ?token,
     };
   }
 
@@ -105,15 +107,17 @@ class ApiService {
   }) async {
     try {
       final deviceId = await _deviceIdentity.getOrCreateDeviceId();
-      final response = await http.post(
-        Uri.parse('$baseUrl/devices/pair'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'code': pairingCode.trim(),
-          'deviceId': deviceId,
-          if (deviceName != null) 'deviceName': deviceName,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/devices/pair'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'code': pairingCode.trim(),
+              'deviceId': deviceId,
+              'deviceName': ?deviceName,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201) {
         final body = jsonDecode(response.body);
