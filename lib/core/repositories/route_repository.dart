@@ -6,7 +6,7 @@ class RouteRepository {
   final ApiService _apiService;
 
   RouteRepository({ApiService? apiService})
-    : _apiService = apiService ?? ApiService();
+    : _apiService = apiService ?? ApiService.instance;
 
   Future<List<RouteModel>> fetchRoutes() => _apiService.fetchRoutes();
 

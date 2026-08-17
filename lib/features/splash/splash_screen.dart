@@ -7,7 +7,9 @@ import '../main_navigation/main_navigation.dart';
 import '../pairing/pairing_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final ApiService? apiService;
+
+  const SplashScreen({super.key, this.apiService});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -16,6 +18,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late final ApiService _apiService;
 
   late Animation<double> _logoOpacity;
   late Animation<Offset> _logoSlide;
@@ -29,6 +32,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
+    _apiService = widget.apiService ?? ApiService.instance;
 
     _controller = AnimationController(
       vsync: this,
@@ -75,8 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateNext() async {
-    final apiService = ApiService();
-    final paired = await apiService.isPaired();
+    final paired = await _apiService.isPaired();
 
     if (!mounted) return;
 

@@ -7,7 +7,9 @@ import '../../core/widgets/primary_button.dart';
 import '../main_navigation/main_navigation.dart';
 
 class PairingScreen extends StatefulWidget {
-  const PairingScreen({super.key});
+  final ApiService? apiService;
+
+  const PairingScreen({super.key, this.apiService});
 
   @override
   State<PairingScreen> createState() => _PairingScreenState();
@@ -15,9 +17,15 @@ class PairingScreen extends StatefulWidget {
 
 class _PairingScreenState extends State<PairingScreen> {
   final TextEditingController _codeController = TextEditingController();
-  final ApiService _apiService = ApiService();
+  late final ApiService _apiService;
   bool _isLoading = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _apiService = widget.apiService ?? ApiService.instance;
+  }
 
   Future<void> _submit() async {
     if (_codeController.text.trim().isEmpty) return;

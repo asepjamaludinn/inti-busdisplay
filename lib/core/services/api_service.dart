@@ -12,7 +12,19 @@ class ApiService {
 
   static final String baseUrl = 'http://$serverIp:$port/api';
 
-  final DeviceIdentityService _deviceIdentity = DeviceIdentityService();
+  final DeviceIdentityService _deviceIdentity;
+
+  ApiService._internal({DeviceIdentityService? deviceIdentity})
+    : _deviceIdentity = deviceIdentity ?? DeviceIdentityService();
+
+  static final ApiService instance = ApiService._internal();
+
+  factory ApiService({DeviceIdentityService? deviceIdentity}) {
+    if (deviceIdentity != null) {
+      return ApiService._internal(deviceIdentity: deviceIdentity);
+    }
+    return instance;
+  }
 
   String get currentIp => serverIp;
 

@@ -5,7 +5,7 @@ class PresetRepository {
   final ApiService _apiService;
 
   PresetRepository({ApiService? apiService})
-    : _apiService = apiService ?? ApiService();
+    : _apiService = apiService ?? ApiService.instance;
 
   Future<List<dynamic>> fetchPresets() => _apiService.fetchPresets();
 

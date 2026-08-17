@@ -10,7 +10,7 @@ class ConnectionProvider extends ChangeNotifier {
   final BleService _bleService;
 
   ConnectionProvider({ApiService? apiService, BleService? bleService})
-    : _apiService = apiService ?? ApiService(),
+    : _apiService = apiService ?? ApiService.instance,
       _bleService = bleService ?? BleService() {
     _checkApiConnection();
   }
