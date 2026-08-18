@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'ble_payload_cipher.dart';
 
 class BleService {
   static const String serviceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
@@ -43,15 +43,31 @@ class BleService {
     targetCharacteristic = null;
   }
 
-  Future<bool> sendPayload(Map<String, dynamic> payload) async {
+  Future<bool> sendPayload(
+    Map<String, dynamic> payload, {
+    String? bleKey,
+    String? deviceToken,
+  }) async {
     if (targetCharacteristic == null || connectedDevice == null) {
       debugPrint('BLE belum terhubung atau karakteristik tidak ditemukan.');
       return false;
     }
 
+    final keySource = bleKey ?? deviceToken;
+    if (keySource == null || keySource.isEmpty) {
+      debugPrint(
+        'Tidak ada bleKey/deviceToken untuk enkripsi. Payload TIDAK dikirim '
+        'demi mencegah pengiriman plaintext.',
+      );
+      return false;
+    }
+
     try {
-      final String jsonString = jsonEncode(payload);
-      final List<int> bytes = utf8.encode(jsonString);
+      final bytes = BlePayloadCipher.encryptPayload(
+        payload: payload,
+        keySource: keySource,
+        keySourceIsRawKey: bleKey != null,
+      );
 
       await targetCharacteristic!.write(bytes, withoutResponse: false);
       return true;

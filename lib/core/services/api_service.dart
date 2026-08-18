@@ -5,12 +5,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/operation_result.dart';
 import '../models/route_model.dart';
 import 'device_identity_service.dart';
+import 'auth_session_notifier.dart';
 
 class ApiService {
   static final String serverIp = dotenv.env['BACKEND_IP'] ?? '127.0.0.1';
   static final String port = dotenv.env['BACKEND_PORT'] ?? '3000';
 
-  static final String baseUrl = 'http://$serverIp:$port/api';
+  static final String _scheme = dotenv.env['BACKEND_SCHEME'] ?? 'https';
+  static final String baseUrl = '$_scheme://$serverIp:$port/api';
 
   final DeviceIdentityService _deviceIdentity;
 
@@ -40,11 +42,38 @@ class ApiService {
     };
   }
 
+  static const _messageEligibleStatusCodes = {
+    400,
+    401,
+    403,
+    404,
+    409,
+    422,
+    429,
+  };
+
+  static final _suspiciousPatterns = RegExp(
+    r'(Exception|Traceback|at\s+\S+\(|\.java:|\.dart:|\.py:|StackTrace|'
+    r'org\.|com\.|SQL|null pointer|undefined|internal server)',
+    caseSensitive: false,
+  );
+
   String _extractErrorMessage(http.Response response, String fallback) {
+    if (!_messageEligibleStatusCodes.contains(response.statusCode)) {
+      return fallback;
+    }
+
     try {
       final body = jsonDecode(response.body);
       if (body is Map<String, dynamic> && body['error'] is String) {
-        return body['error'] as String;
+        final message = (body['error'] as String).trim();
+
+        final isSafe =
+            message.isNotEmpty &&
+            message.length <= 200 &&
+            !_suspiciousPatterns.hasMatch(message);
+
+        if (isSafe) return message;
       }
     } catch (_) {}
     return fallback;
@@ -62,6 +91,10 @@ class ApiService {
           .timeout(timeout);
       if (response.statusCode == 200) {
         return onSuccess(jsonDecode(response.body));
+      }
+      if (response.statusCode == 401) {
+        AuthSessionNotifier.instance.invalidate();
+        await _deviceIdentity.clearPairing();
       }
     } catch (e) {
       debugPrint('Error GET $path: $e');
@@ -88,6 +121,11 @@ class ApiService {
         }
         final Map<String, dynamic> body = jsonDecode(response.body);
         return OperationResult.success(parseData(body));
+      }
+
+      if (response.statusCode == 401) {
+        AuthSessionNotifier.instance.invalidate();
+        await _deviceIdentity.clearPairing();
       }
 
       final message =
@@ -133,8 +171,12 @@ class ApiService {
 
       if (response.statusCode == 201) {
         final body = jsonDecode(response.body);
-        final token = body['data']['deviceToken'] as String;
-        await _deviceIdentity.saveDeviceToken(token);
+        final data = body['data'] as Map<String, dynamic>;
+        final token = data['deviceToken'] as String;
+        final bleKey = data['bleKey'] as String?;
+
+        await _deviceIdentity.saveDeviceToken(token, bleKey: bleKey);
+        AuthSessionNotifier.instance.markAuthenticated();
         return OperationResult.success(null, 'Device berhasil dipasangkan!');
       }
 

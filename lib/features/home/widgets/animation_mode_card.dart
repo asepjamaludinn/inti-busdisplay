@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../../core/models/animation_mode.dart';
 import '../../../core/providers/display_settings_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -8,38 +9,10 @@ import '../../../core/theme/app_theme.dart';
 class AnimationModeCard extends StatelessWidget {
   const AnimationModeCard({super.key});
 
-  static const _modes = [
-    'Running',
-    'Static',
-    'Blink',
-    'Scroll Left',
-    'Scroll Right',
-    'Scroll Up',
-    'Scroll Down',
-  ];
-
-  IconData _iconFor(String mode) {
-    switch (mode) {
-      case 'Blink':
-        return Icons.flash_on_rounded;
-      case 'Static':
-        return Icons.crop_square_rounded;
-      case 'Scroll Right':
-        return Icons.arrow_forward_rounded;
-      case 'Scroll Left':
-        return Icons.arrow_back_rounded;
-      case 'Scroll Up':
-        return Icons.arrow_upward_rounded;
-      case 'Scroll Down':
-        return Icons.arrow_downward_rounded;
-      default:
-        return Icons.sync_alt_rounded;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<DisplaySettingsProvider>();
+    final currentMode = AnimationMode.fromLabel(settingsProvider.animMode);
 
     return Container(
       decoration: AppTheme.coloredCardDecoration(AppColors.amber),
@@ -93,12 +66,12 @@ class AnimationModeCard extends StatelessWidget {
                         fontSize: 14,
                         color: Colors.white,
                       ),
-                      selectedItemBuilder: (context) => _modes
+                      selectedItemBuilder: (context) => AnimationMode.allLabels
                           .map(
-                            (mode) => Align(
+                            (label) => Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                mode,
+                                label,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -106,12 +79,12 @@ class AnimationModeCard extends StatelessWidget {
                             ),
                           )
                           .toList(),
-                      items: _modes
+                      items: AnimationMode.allLabels
                           .map(
-                            (mode) => DropdownMenuItem(
-                              value: mode,
+                            (label) => DropdownMenuItem(
+                              value: label,
                               child: Text(
-                                mode,
+                                label,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.white,
@@ -138,17 +111,13 @@ class AnimationModeCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  _iconFor(settingsProvider.animMode),
-                  color: Colors.white,
-                  size: 24,
-                ),
+                child: Icon(currentMode.icon, color: Colors.white, size: 24),
               ),
               const SizedBox(height: 8),
               Text(
-                settingsProvider.animMode == 'Static'
+                currentMode.isStatic
                     ? 'Teks diam'
-                    : settingsProvider.animMode == 'Blink'
+                    : currentMode.isBlink
                     ? 'Berkedip'
                     : 'Speed ${settingsProvider.speed.toInt()}%',
                 style: GoogleFonts.dmSans(

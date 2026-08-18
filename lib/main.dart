@@ -14,7 +14,14 @@ import 'core/repositories/preset_repository.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint(
+      'Peringatan: file .env tidak ditemukan atau gagal dimuat ($e). '
+      'Menggunakan nilai default bawaan ApiService.',
+    );
+  }
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeRight,

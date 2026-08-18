@@ -192,6 +192,18 @@ class RouteCard extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
+
+              if (routeProvider.isLoadingRoutes) ...[
+                const SizedBox(width: 8),
+                const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.6,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 16),

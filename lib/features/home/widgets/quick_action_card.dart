@@ -104,12 +104,24 @@ class QuickActionCard extends StatelessWidget {
     String? presetName,
   }) {
     try {
-      context.read<RouteProvider>().applyRouteFromPayload(payload);
+      final routeMatched = context.read<RouteProvider>().applyRouteFromPayload(
+        payload,
+      );
       context.read<DisplaySettingsProvider>().applyFromPayload(payload);
       context.read<PresetProvider>().markLoadedPreset(
         presetId: presetId,
         presetName: presetName,
       );
+
+      if (!routeMatched) {
+        context.showFeedback(
+          message:
+              'Preset "${presetName ?? ''}" diterapkan, tapi rute aslinya '
+              'sudah tidak tersedia — menggunakan rute pertama sebagai gantinya.',
+          color: AppColors.warning,
+        );
+        return;
+      }
 
       context.showFeedback(
         message: presetName != null && presetName.isNotEmpty
@@ -289,11 +301,21 @@ class QuickActionCard extends StatelessWidget {
   }
 
   Future<void> _sendToDevice(BuildContext context) async {
+    final connectionProvider = context.read<ConnectionProvider>();
     final payload = _buildPayload(context);
-    final result = await context.read<ConnectionProvider>().sendPayload(
-      payload,
-    );
-    if (context.mounted) context.showResult(result);
+    final result = await connectionProvider.sendPayload(payload);
+
+    if (!context.mounted) return;
+
+    if (connectionProvider.lastApiSyncFailed) {
+      context.showFeedback(
+        message: result.message ?? 'Gagal sinkron ke server.',
+        color: AppColors.warning,
+      );
+      return;
+    }
+
+    context.showResult(result);
   }
 
   @override

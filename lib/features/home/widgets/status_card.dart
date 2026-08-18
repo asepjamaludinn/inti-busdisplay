@@ -122,64 +122,128 @@ class StatusCard extends StatelessWidget {
     final dotColor = isConnected ? AppColors.success : AppColors.danger;
     final statusText = isConnected ? 'Terhubung' : 'Terputus';
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          decoration: AppTheme.gradientCardDecoration(
+            isConnected
+                ? AppColors.statusGradient
+                : [AppColors.dusk, AppColors.textPrimary],
+            radius: 22,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: dotColor.withValues(alpha: 0.6),
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      connectionProvider.connectionText,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$statusText • Koneksi Bluetooth',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.65),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _CircleIconButton(
+                icon: isConnected
+                    ? Icons.bluetooth_connected_rounded
+                    : Icons.bluetooth_searching_rounded,
+                onTap: () => _showBluetoothScanner(context),
+                filled: isConnected,
+              ),
+            ],
+          ),
+        ),
+
+        if (connectionProvider.lastApiSyncFailed) ...[
+          const SizedBox(height: 8),
+          _ApiSyncWarningBanner(
+            onDismiss: connectionProvider.acknowledgeApiSyncFailure,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ApiSyncWarningBanner extends StatelessWidget {
+  final VoidCallback onDismiss;
+
+  const _ApiSyncWarningBanner({required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: AppTheme.gradientCardDecoration(
-        isConnected
-            ? AppColors.statusGradient
-            : [AppColors.dusk, AppColors.textPrimary],
-        radius: 22,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: dotColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: dotColor.withValues(alpha: 0.6),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                ),
-              ],
+          const Icon(
+            Icons.sync_problem_rounded,
+            color: AppColors.warning,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Panel sudah menerima data terbaru, tapi server belum '
+              'tersinkron. Coba kirim ulang.',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  connectionProvider.connectionText,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$statusText • Koneksi Bluetooth',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.65),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+          InkWell(
+            onTap: onDismiss,
+            borderRadius: BorderRadius.circular(12),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(
+                Icons.close_rounded,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-          _CircleIconButton(
-            icon: isConnected
-                ? Icons.bluetooth_connected_rounded
-                : Icons.bluetooth_searching_rounded,
-            onTap: () => _showBluetoothScanner(context),
-            filled: isConnected,
           ),
         ],
       ),

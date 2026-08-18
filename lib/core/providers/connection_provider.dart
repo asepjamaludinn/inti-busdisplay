@@ -4,34 +4,35 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../models/operation_result.dart';
 import '../services/api_service.dart';
 import '../services/bluetooth_service.dart';
+import '../services/device_identity_service.dart';
 
 class ConnectionProvider extends ChangeNotifier {
   final ApiService _apiService;
   final BleService _bleService;
+  final DeviceIdentityService _deviceIdentity;
 
-  ConnectionProvider({ApiService? apiService, BleService? bleService})
-    : _apiService = apiService ?? ApiService.instance,
-      _bleService = bleService ?? BleService() {
-    _checkApiConnection();
-  }
+  ConnectionProvider({
+    ApiService? apiService,
+    BleService? bleService,
+    DeviceIdentityService? deviceIdentity,
+    @visibleForTesting bool debugInitiallyConnected = false,
+  }) : _apiService = apiService ?? ApiService.instance,
+       _bleService = bleService ?? BleService(),
+       _deviceIdentity = deviceIdentity ?? DeviceIdentityService(),
+       _isBleConnected = debugInitiallyConnected;
 
-  bool _isApiConnected = false;
-  bool _isBleConnected = false;
+  bool _isBleConnected;
   String _bleDeviceName = 'Belum Terhubung';
   bool _isScanning = false;
   List<ScanResult> _scanResults = [];
   StreamSubscription<List<ScanResult>>? _scanSubscription;
+  bool _lastApiSyncFailed = false;
 
-  bool get isApiConnected => _isApiConnected;
   bool get isBleConnected => _isBleConnected;
   String get connectionText => _bleDeviceName;
   bool get isScanning => _isScanning;
   List<ScanResult> get scanResults => _scanResults;
-
-  Future<void> _checkApiConnection() async {
-    _isApiConnected = await _apiService.checkConnection();
-    notifyListeners();
-  }
+  bool get lastApiSyncFailed => _lastApiSyncFailed;
 
   Future<void> startBleScan() async {
     _isScanning = true;
@@ -88,18 +89,52 @@ class ConnectionProvider extends ChangeNotifier {
       );
     }
 
-    final bool bleSuccess = await _bleService.sendPayload(payload);
+    final bleKey = await _deviceIdentity.getBleKey();
+    final deviceToken = await _deviceIdentity.getDeviceToken();
 
-    unawaited(_apiService.sendDisplayConfig(payload));
+    final bool bleSuccess = await _bleService.sendPayload(
+      payload,
+      bleKey: bleKey,
+      deviceToken: deviceToken,
+    );
 
-    return bleSuccess
-        ? OperationResult.success(
-            null,
-            'Berhasil mengirim ke P5 Panel via Bluetooth!',
-          )
-        : OperationResult.failure(
-            'Gagal mengirim data. Pastikan dekat dengan panel.',
-          );
+    if (!bleSuccess) {
+      return OperationResult.failure(
+        'Gagal mengirim data. Pastikan dekat dengan panel dan device sudah '
+        'dipasangkan (bleKey tersedia).',
+      );
+    }
+
+    bool apiSynced = true;
+    try {
+      final apiResult = await _apiService.sendDisplayConfig(payload);
+      apiSynced = apiResult.success;
+      if (!apiSynced) {
+        debugPrint(
+          'Sinkronisasi API gagal setelah BLE sukses: ${apiResult.message}',
+        );
+      }
+    } catch (e) {
+      apiSynced = false;
+      debugPrint('Error saat sinkronisasi API setelah BLE sukses: $e');
+    }
+
+    _lastApiSyncFailed = !apiSynced;
+    notifyListeners();
+
+    return OperationResult.success(
+      null,
+      apiSynced
+          ? 'Berhasil mengirim ke P5 Panel via Bluetooth!'
+          : 'Berhasil mengirim ke panel via Bluetooth, tapi gagal sinkron '
+                'ke server. Data di server mungkin tidak sesuai kondisi panel.',
+    );
+  }
+
+  void acknowledgeApiSyncFailure() {
+    if (!_lastApiSyncFailed) return;
+    _lastApiSyncFailed = false;
+    notifyListeners();
   }
 
   @override

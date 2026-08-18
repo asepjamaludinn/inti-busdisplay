@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/models/animation_mode.dart';
 import '../../../core/providers/route_provider.dart';
 import '../../../core/providers/display_settings_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 const double kP5PanelAspectRatio = 3.6;
-
-double _lerp(double a, double b, double t) => a + (b - a) * t;
 
 class PreviewCard extends StatefulWidget {
   const PreviewCard({super.key});
@@ -18,7 +17,7 @@ class PreviewCard extends StatefulWidget {
 class _PreviewCardState extends State<PreviewCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  String? _lastMode;
+  String? _lastModeLabel;
   double? _lastSpeed;
 
   @override
@@ -36,82 +35,30 @@ class _PreviewCardState extends State<PreviewCard>
     super.dispose();
   }
 
-  Duration _periodFor(String mode, double speed) {
-    final t = speed.clamp(0, 100) / 100;
-    if (mode == 'Blink') {
-      return Duration(milliseconds: _lerp(1600, 260, t).round());
-    }
-    return Duration(milliseconds: _lerp(7000, 900, t).round());
-  }
-
-  void _syncAnimation(String mode, double speed) {
-    if (mode == _lastMode && speed == _lastSpeed) return;
-    _lastMode = mode;
+  void _syncAnimation(AnimationMode mode, double speed) {
+    if (mode.label == _lastModeLabel && speed == _lastSpeed) return;
+    _lastModeLabel = mode.label;
     _lastSpeed = speed;
 
-    if (mode == 'Static') {
+    if (mode.isStatic) {
       _controller
         ..stop()
         ..value = 0;
       return;
     }
 
-    final period = _periodFor(mode, speed);
     _controller
       ..stop()
       ..value = 0
-      ..repeat(period: period);
-  }
-
-  IconData _animIcon(String mode) {
-    switch (mode) {
-      case 'Blink':
-        return Icons.flash_on_rounded;
-      case 'Static':
-        return Icons.crop_square_rounded;
-      case 'Scroll Right':
-        return Icons.arrow_forward_rounded;
-      case 'Scroll Left':
-        return Icons.arrow_back_rounded;
-      case 'Scroll Up':
-        return Icons.arrow_upward_rounded;
-      case 'Scroll Down':
-        return Icons.arrow_downward_rounded;
-      default:
-        return Icons.sync_alt_rounded;
-    }
-  }
-
-  Offset _offsetFor(
-    String mode,
-    double panelW,
-    double panelH,
-    double textW,
-    double textH,
-    double t,
-  ) {
-    final centerX = (panelW - textW) / 2;
-    final centerY = (panelH - textH) / 2;
-    switch (mode) {
-      case 'Scroll Left':
-      case 'Running':
-        return Offset(_lerp(panelW, -textW, t), centerY);
-      case 'Scroll Right':
-        return Offset(_lerp(-textW, panelW, t), centerY);
-      case 'Scroll Up':
-        return Offset(centerX, _lerp(panelH, -textH, t));
-      case 'Scroll Down':
-        return Offset(centerX, _lerp(-textH, panelH, t));
-      default:
-        return Offset(centerX, centerY);
-    }
+      ..repeat(period: mode.periodFor(speed));
   }
 
   @override
   Widget build(BuildContext context) {
     final routeProvider = context.watch<RouteProvider>();
     final settingsProvider = context.watch<DisplaySettingsProvider>();
-    _syncAnimation(settingsProvider.animMode, settingsProvider.speed);
+    final mode = AnimationMode.fromLabel(settingsProvider.animMode);
+    _syncAnimation(mode, settingsProvider.speed);
 
     final route = routeProvider.selectedRoute;
     final label = routeProvider.isPergi
@@ -176,12 +123,7 @@ class _PreviewCardState extends State<PreviewCard>
 
             var tp = measure(fontSize);
 
-            final travelsHorizontally =
-                settingsProvider.animMode == 'Scroll Left' ||
-                settingsProvider.animMode == 'Scroll Right' ||
-                settingsProvider.animMode == 'Running';
-
-            if (!travelsHorizontally &&
+            if (!mode.travelsHorizontally &&
                 tp.width > panelW - horizontalInset * 2) {
               final scale = (panelW - horizontalInset * 2) / tp.width;
               fontSize = (fontSize * scale).clamp(10.0, fontSize);
@@ -195,18 +137,17 @@ class _PreviewCardState extends State<PreviewCard>
                 AnimatedBuilder(
                   animation: _controller,
                   builder: (context, _) {
-                    final offset = _offsetFor(
-                      settingsProvider.animMode,
-                      panelW,
-                      panelH,
-                      tp.width,
-                      tp.height,
-                      _controller.value,
+                    final offset = mode.offsetFor(
+                      panelWidth: panelW,
+                      panelHeight: panelH,
+                      textWidth: tp.width,
+                      textHeight: tp.height,
+                      t: _controller.value,
                     );
 
-                    final blinkOpacity = settingsProvider.animMode == 'Blink'
-                        ? (_controller.value < 0.5 ? 1.0 : 0.12)
-                        : 1.0;
+                    final blinkOpacity = mode.blinkOpacityFor(
+                      _controller.value,
+                    );
 
                     return Positioned(
                       left: offset.dx,
@@ -248,13 +189,13 @@ class _PreviewCardState extends State<PreviewCard>
                       ),
                       const Spacer(),
                       Icon(
-                        _animIcon(settingsProvider.animMode),
+                        mode.icon,
                         color: Colors.white.withValues(alpha: 0.45),
                         size: 13,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        settingsProvider.animMode,
+                        mode.label,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.45),
                           fontSize: 9,

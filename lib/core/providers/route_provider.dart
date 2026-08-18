@@ -18,15 +18,22 @@ class RouteProvider extends ChangeNotifier {
   late RouteModel _selectedRoute = _routes.first;
   bool _isPergi = true;
 
+  bool _isLoadingRoutes = true;
+
   List<RouteModel> get routes => _routes;
   RouteModel get selectedRoute => _selectedRoute;
   bool get isPergi => _isPergi;
+  bool get isLoadingRoutes => _isLoadingRoutes;
 
   Future<void> _loadRoutes() async {
-    final serverRoutes = await _routeRepository.fetchRoutes();
-    if (serverRoutes.isNotEmpty) {
-      _routes = serverRoutes;
-      _selectedRoute = _routes.first;
+    try {
+      final serverRoutes = await _routeRepository.fetchRoutes();
+      if (serverRoutes.isNotEmpty) {
+        _routes = serverRoutes;
+        _selectedRoute = _routes.first;
+      }
+    } finally {
+      _isLoadingRoutes = false;
       notifyListeners();
     }
   }
@@ -119,16 +126,23 @@ class RouteProvider extends ChangeNotifier {
     return OperationResult.success(null, 'Rute berhasil dihapus.');
   }
 
-  void applyRouteFromPayload(Map<String, dynamic> payload) {
+  bool applyRouteFromPayload(Map<String, dynamic> payload) {
     final routeName = payload['route'] as String?;
+    bool matched = true;
+
     if (routeName != null) {
-      _selectedRoute = _routes.firstWhere(
-        (r) => r.fullDisplayName == routeName,
-        orElse: () => _routes.first,
-      );
+      final found = _routes.where((r) => r.fullDisplayName == routeName);
+      if (found.isEmpty) {
+        matched = false;
+        _selectedRoute = _routes.first;
+      } else {
+        _selectedRoute = found.first;
+      }
     }
+
     _isPergi = payload['direction'] == 'Pergi';
     notifyListeners();
+    return matched;
   }
 
   void resetSelection() {
